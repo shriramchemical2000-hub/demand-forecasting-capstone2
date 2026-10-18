@@ -1,0 +1,39 @@
+# Weekly store-level Walmart sales (Kaggle: yasserh/walmart-dataset). Inherits everything else from default.yaml.
+extends: base.yaml
+
+data:
+  source: walmart
+  frequency: W
+  season_period: 52
+  target_type: continuous
+  extra_features: [fuel_price, cpi, unemployment]
+  processed_path: data/processed/walmart_model_table.csv.gz
+
+split:            # all sizes are in WEEKS
+  test_days: 16
+  val_days: 26
+
+forecast:
+  horizon: 2
+  lags: [2, 3, 4, 8]
+  rolling_windows: [4, 13]
+  model:
+    params: {max_iter: 200, learning_rate: 0.05, max_leaf_nodes: 15, loss: squared_error}
+  arima_order: [2, 0, 1]
+  classical_window: 400
+  price_window: 8
+
+uncertainty:
+  check_days: 8
+
+critic:
+  drift_window_days: 4
+  pool_sensitivity_by: none   # every series is a different store
+
+inventory:
+  unit_label: "$ of sales"
+  lead_time_days: 1   # order placed at the end of week t arrives at the start of week t+2
+  nowcast:
+    window: 2
+
+output_dir: outputs/walmart

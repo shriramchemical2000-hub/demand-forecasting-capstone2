@@ -1,0 +1,115 @@
+# Base configuration (synthetic data). Other configs start with `extends: base.yaml` and override only what differs.
+project:
+  seed: 42
+
+data:
+  source: synthetic            # synthetic | m5 | walmart | walmart_synthetic
+  frequency: D                 # D = daily, W = weekly (every "days" setting below then means periods)
+  season_period: 7             # 7 for daily data, 52 for weekly data
+  target_type: count           # count (units sold) | continuous (e.g. dollar sales)
+  extra_features: []           # extra numeric columns the loader provides, e.g. [fuel_price, cpi]
+  synthetic:
+    n_stores: 3
+    n_items: 12
+    n_days: 1000
+    start_date: "2021-01-01"
+    shocks: true               # false = calm world with no injected shocks in the test window
+  m5:
+    raw_dir: data/raw/m5       # calendar.csv, sales_train_evaluation.csv, sell_prices.csv
+    n_stores: 3                # pilot subset: keep small until the pipeline is stable
+    n_items: 50
+    max_days: 1000             # keep the most recent N days
+    end_offset_days: 0         # move the window back in time: 0 = latest data; 138 = ends 5 Jan 2016 (Thanksgiving + Christmas)
+  walmart:
+    path: data/raw/walmart/Walmart.csv
+  processed_path: null         # modelling table written by `demand-agents build`; used automatically when it exists
+  noaa:
+    raw_dir: null              # folder with raw NOAA station files (data/raw/noaa), merged by state
+    path: null                 # or a ready CSV: date, temp and optionally store_id or state_id
+
+split:
+  test_days: 56
+  val_days: 84
+
+forecast:
+  horizon: 7                   # forecasts are produced 7 days ahead of the demand day
+  lags: [7, 14, 21, 28]        # every lag must be >= horizon (no leakage)
+  rolling_windows: [7, 28]
+  selection:
+    blend_with_ets: true       # candidate: weighted blend of the model and classical ETS (weight chosen on validation)
+    min_relative_gain: 0.02    # the blend must beat the plain model by this margin on held-out validation data
+  model:
+    type: hist_gbm             # hist_gbm | lightgbm
+    params:
+      max_iter: 300
+      learning_rate: 0.05
+      max_leaf_nodes: 31
+      loss: poisson
+  baselines: [seasonal_naive, ets]   # add "arima" for the ARIMA baseline (slower)
+  arima_order: [7, 0, 0]
+  classical_window: 365        # history length used by each ETS/ARIMA refit
+  price_window: 56
+
+uncertainty:
+  nominal_coverage: 0.90
+  check_days: 28               # last part of validation held out for the Critic's calibration check
+  psum_inflation: true         # correct sigma for correlated errors over the protection interval
+  max_psum_inflation: 2.0
+  adaptive:                    # adaptive conformal updating (uses only outcomes older than the horizon)
+    enabled: true
+    gamma: 0.15
+    max_log_scale: 0.7
+    use_in_planner: false      # tested on separate seeds: no cost benefit, so intervals only
+
+critic:
+  coverage_tolerance: 0.05
+  max_revision_rounds: 2
+  max_interval_scale: 2.0
+  weather_z_threshold: 2.0
+  drift_window_days: 14
+  drift_ratio_threshold: 1.5
+  pool_sensitivity_by: item    # item | none  (pool the same item across stores to estimate weather sensitivity)
+  learn_weights: true          # learn the risk weights from validation errors instead of trusting the hand-set ones
+  prior_strength: 100          # how many validation observations the hand-set weights are worth (shrinkage)
+  sensitivity_t_threshold: 3.0 # a series counts as weather-sensitive if |t-stat| of the sales-vs-temperature link exceeds this
+  risk_weights:
+    event: 0.25
+    weather: 0.35
+    drift: 1.25                # applied to the continuous excess error ratio, clipped to [0, 1]
+    price: 0.20                # unusually deep discount (outside the price range seen in training)
+  price_quantile: 0.01         # a price ratio below this training quantile counts as unusual
+  max_risk_multiplier: 2.5
+
+inventory:
+  lead_time_days: 2            # order placed end of day t arrives start of day t+1+lead_time
+  review_period_days: 1
+  service_level: 0.95          # target used to set the safety-stock z-score
+  holding_rate_annual: 0.25    # holding cost as a fraction of price per year
+  stockout_cost_frac_of_price: 0.5
+  unit_label: units            # what one inventory unit means (Walmart weekly data: "$ of sales")
+  lead_time_delay_prob: 0.0    # chance that an order is delayed (supplier unreliability)
+  lead_time_delay_max: 0       # a delayed order arrives 1..max periods late
+  lead_time_buffer: 0          # extra protection periods planned to absorb delays (needs P + buffer <= horizon)
+  batch_size: 1                # orders are rounded up to a multiple of this
+  min_order_qty: 0
+  fixed_order_cost: 0.0        # cost per order placed
+  order_rule: base_stock       # base_stock | s_S  (s_S only orders when position <= S - gap)
+  s_S_gap_periods: 2           # for s_S: reorder point s = S - gap x average daily demand
+  abc_service_levels:          # per-item service levels by volume class (A = top 20% of volume, B = next 30%)
+    enabled: false
+    A: 0.98
+    B: 0.95
+    C: 0.90
+  nowcast:                     # optional: Planner re-centres the forecast when recent demand is significantly off
+    enabled: false             # OFF: helped only on synthetic surges; no benefit on two real M5 windows (see README)
+    window: 7
+    z_threshold: 3.0           # strict: ~0.3% false alarms per period (2.0 gave ~4.5% and wasted stock in calm periods)
+    shrink: 0.7
+    ignore_event_periods: true # known events (holidays, closures) never trigger a re-centring
+    clip: [0.8, 2.0]
+
+llm:
+  enabled: false               # true -> agents write rationales with Claude (needs ANTHROPIC_API_KEY)
+  model: claude-sonnet-5-5
+
+output_dir: outputs/latest

@@ -1,0 +1,9 @@
+# M5 stress test: a test window that ends 5 Jan 2016 (Thanksgiving + Christmas).
+extends: m5.yaml
+
+data:
+  m5:
+    end_offset_days: 138
+  processed_path: data/processed/m5_christmas_model_table.csv.gz
+
+output_dir: outputs/m5_christmas

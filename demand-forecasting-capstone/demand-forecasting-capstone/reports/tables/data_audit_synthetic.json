@@ -1,0 +1,167 @@
+{
+  "name": "synthetic",
+  "cleaning_log": [
+    {
+      "step": "drop rows with missing date / series / sales",
+      "rows_affected": 0,
+      "note": ""
+    },
+    {
+      "step": "drop duplicate (series, date) rows",
+      "rows_affected": 0,
+      "note": "kept the last occurrence"
+    },
+    {
+      "step": "negative sales set to 0",
+      "rows_affected": 0,
+      "note": ""
+    },
+    {
+      "step": "non-integer sales rounded (count data)",
+      "rows_affected": 0,
+      "note": ""
+    },
+    {
+      "step": "price <= 0 set to missing",
+      "rows_affected": 0,
+      "note": ""
+    },
+    {
+      "step": "missing price carried forward within series",
+      "rows_affected": 0,
+      "note": "0 leading values stay missing"
+    },
+    {
+      "step": "temperature outside (-60.0, 55.0) set to missing",
+      "rows_affected": 0,
+      "note": ""
+    },
+    {
+      "step": "rows kept",
+      "rows_affected": 36000,
+      "note": "100.00% of the 36,000 input rows"
+    }
+  ],
+  "weather_cleaning_log": [],
+  "audit_raw": {
+    "name": "synthetic",
+    "frequency": "D",
+    "overview": {
+      "rows": 36000,
+      "series": 36,
+      "start": "2021-01-01",
+      "end": "2023-09-27",
+      "periods": 1000,
+      "stores": 3,
+      "items": 12
+    },
+    "quality": {
+      "duplicates": 0,
+      "series_with_gaps": 0,
+      "missing_periods": 0,
+      "late_start_series": 0,
+      "early_end_series": 0,
+      "short_series": 0,
+      "negative_sales": 0,
+      "missing_sales": 0
+    },
+    "demand": {
+      "zero_share": 0.006138888888888889,
+      "series_zero_share_median": 0.0015,
+      "series_zero_share_p90": 0.0195,
+      "classes": {
+        "smooth": 36
+      },
+      "outlier_share": 0.00125,
+      "mass_zero_days": [],
+      "mean_sales": 10.956583333333333,
+      "median_sales": 9.0
+    },
+    "price": {
+      "present": true,
+      "missing_share": 0.0,
+      "non_positive": 0,
+      "constant_series_share": 0.0
+    },
+    "weather": {
+      "present": true,
+      "missing_share": 0.0,
+      "min": 1.4,
+      "max": 40.7
+    },
+    "events": {
+      "present": true,
+      "event_day_share": 0.022
+    },
+    "issues": [
+      {
+        "severity": "info",
+        "check": "demand spikes",
+        "detail": "0.12% of observations are > 6 robust sigmas from their series median",
+        "action": "KEPT: spikes are the shocks the Critic must detect; they are not errors"
+      }
+    ]
+  },
+  "audit_final": {
+    "name": "synthetic",
+    "frequency": "D",
+    "overview": {
+      "rows": 36000,
+      "series": 36,
+      "start": "2021-01-01",
+      "end": "2023-09-27",
+      "periods": 1000,
+      "stores": 3,
+      "items": 12
+    },
+    "quality": {
+      "duplicates": 0,
+      "series_with_gaps": 0,
+      "missing_periods": 0,
+      "late_start_series": 0,
+      "early_end_series": 0,
+      "short_series": 0,
+      "negative_sales": 0,
+      "missing_sales": 0
+    },
+    "demand": {
+      "zero_share": 0.006138888888888889,
+      "series_zero_share_median": 0.0015,
+      "series_zero_share_p90": 0.0195,
+      "classes": {
+        "smooth": 36
+      },
+      "outlier_share": 0.00125,
+      "mass_zero_days": [],
+      "mean_sales": 10.956583333333333,
+      "median_sales": 9.0
+    },
+    "price": {
+      "present": true,
+      "missing_share": 0.0,
+      "non_positive": 0,
+      "constant_series_share": 0.0
+    },
+    "weather": {
+      "present": true,
+      "missing_share": 0.0,
+      "min": 1.4,
+      "max": 40.7
+    },
+    "events": {
+      "present": true,
+      "event_day_share": 0.022
+    },
+    "issues": [
+      {
+        "severity": "info",
+        "check": "demand spikes",
+        "detail": "0.12% of observations are > 6 robust sigmas from their series median",
+        "action": "KEPT: spikes are the shocks the Critic must detect; they are not errors"
+      }
+    ]
+  },
+  "weather_audit": null,
+  "rows_final": 36000,
+  "processed_path": "data/processed/synthetic_model_table.csv.gz"
+}

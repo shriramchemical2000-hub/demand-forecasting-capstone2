@@ -1,0 +1,10 @@
+# Real M5 pilot: 3 California stores x 50 top items, latest 56 days as the test window. Weather merged from data/raw/noaa if present.
+extends: base.yaml
+
+data:
+  source: m5
+  processed_path: data/processed/m5_model_table.csv.gz
+  noaa:
+    raw_dir: data/raw/noaa
+
+output_dir: outputs/m5

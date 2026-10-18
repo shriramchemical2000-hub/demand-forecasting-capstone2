@@ -1,0 +1,9 @@
+step,rows_affected,note
+drop rows with missing date / series / sales,0,
+"drop duplicate (series, date) rows",0,kept the last occurrence
+negative sales set to 0,0,
+non-integer sales rounded (count data),0,
+price <= 0 set to missing,0,
+missing price carried forward within series,0,0 leading values stay missing
+"temperature outside (-60.0, 55.0) set to missing",0,
+rows kept,36000,"100.00% of the 36,000 input rows"

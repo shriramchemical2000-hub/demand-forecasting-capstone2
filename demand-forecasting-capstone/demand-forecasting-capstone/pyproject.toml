@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "demand-agents"
+version = "1.0.0"
+description = "Agentic demand forecasting and inventory optimization: data audit, EDA, forecasting agents and inventory simulation"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scipy",
+  "scikit-learn",
+  "statsmodels",
+  "pyyaml",
+  "matplotlib",
+]
+
+[project.optional-dependencies]
+colab = ["statsmodels", "kaggle", "ipywidgets"]
+dashboard = ["streamlit>=1.50", "plotly"]
+lightgbm = ["lightgbm"]
+llm = ["anthropic"]
+dev = ["pytest", "nbformat", "nbclient", "ipykernel"]
+
+[project.scripts]
+demand-agents = "demand_agents.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
